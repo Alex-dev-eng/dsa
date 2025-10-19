@@ -1,1 +1,32 @@
-
+class ArrayStack(Stack):
+    """Стек на основе динамического массива."""
+    
+    def __init__(self):
+        self._data = []
+    
+    def push(self, item: Any) -> None:
+        """Добавление элемента - O(1)"""
+        self._data.append(item)
+    
+    def pop(self) -> Any:
+        """Удаление и возврат элемента - O(1)"""
+        if self.is_empty():
+            raise IndexError("Pop from empty stack")
+        return self._data.pop()
+    
+    def peek(self) -> Any:
+        """Просмотр вершины - O(1)"""
+        if self.is_empty():
+            raise IndexError("Peek from empty stack")
+        return self._data[-1]
+    
+    def is_empty(self) -> bool:
+        """Проверка на пустоту - O(1)"""
+        return len(self._data) == 0
+    
+    def __len__(self) -> int:
+        """Размер стека - O(1)"""
+        return len(self._data)
+    
+    def __repr__(self) -> str:
+        return f"ArrayStack({self._data})"
