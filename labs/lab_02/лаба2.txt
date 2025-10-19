@@ -1,0 +1,167 @@
+import random
+import time
+import matplotlib.pyplot as plt
+
+# ==================== Timsort ====================
+MIN_MERGE = 32
+
+def calc_min_run(n):
+    """Вычисляет минимальный размер серии."""
+    r = 0
+    while n >= MIN_MERGE:
+        r |= n & 1
+        n >>= 1
+    return n + r
+
+def insertion_sort(arr, left, right):
+    """Простая сортировка вставками для подмассива arr[left..right]."""
+    for i in range(left + 1, right + 1):
+        j = i
+        while j > left and arr[j] < arr[j - 1]:
+            arr[j], arr[j - 1] = arr[j - 1], arr[j]
+            j -= 1
+
+def merge(arr, l, m, r):
+    """Слияние двух отсортированных подмассивов arr[l..m] и arr[m+1..r]."""
+    len1, len2 = m - l + 1, r - m
+    left = arr[l: m + 1]
+    right = arr[m + 1: m + 1 + len2]
+    
+    i = j = 0
+    k = l
+    
+    while i < len1 and j < len2:
+        if left[i] <= right[j]:
+            arr[k] = left[i]
+            i += 1
+        else:
+            arr[k] = right[j]
+            j += 1
+        k += 1
+
+    while i < len1:
+        arr[k] = left[i]
+        i += 1
+        k += 1
+
+    while j < len2:
+        arr[k] = right[j]
+        j += 1
+        k += 1
+
+def timsort(arr):
+    n = len(arr)
+    min_run = calc_min_run(n)
+    
+    # Сортировка отдельных подмассивов размера min_run
+    for start in range(0, n, min_run):
+        end = min(start + min_run - 1, n - 1)
+        insertion_sort(arr, start, end)
+    
+    # Начало слияния
+    size = min_run
+    while size < n:
+        for left in range(0, n, 2 * size):
+            mid = min(n - 1, left + size - 1)
+            right = min((left + 2 * size - 1), (n - 1))
+            if mid < right:
+                merge(arr, left, mid, right)
+        size = 2 * size
+
+# ==================== Сортировка Шелла ====================
+def shell_sort(arr):
+    n = len(arr)
+    gap = n // 2  # Начальный шаг
+
+    while gap > 0:
+        for i in range(gap, n):
+            temp = arr[i]
+            j = i
+            while j >= gap and arr[j - gap] > temp:
+                arr[j] = arr[j - gap]
+                j -= gap
+            arr[j] = temp
+        gap //= 2  # Уменьшаем шаг
+
+# ==================== Вспомогательные функции ====================
+def generate_array(size, order='random'):
+    """Генерирует массив заданного размера и порядка."""
+    arr = list(range(size))
+    if order == 'random':
+        random.shuffle(arr)
+    elif order == 'reversed':
+        arr.reverse()
+    # 'sorted' уже возвращается по умолчанию
+    return arr
+
+def test_sorting_algorithm(algorithm, arr, order):
+    """Тестирует алгоритм на копии массива и возвращает время."""
+    test_arr = arr.copy()
+    start_time = time.time()
+    algorithm(test_arr)
+    end_time = time.time()
+    # Проверка корректности сортировки
+    assert test_arr == sorted(arr), f"Алгоритм {algorithm.__name__} отсортировал массив неправильно!"
+    return end_time - start_time
+
+# ==================== Основная программа ====================
+if __name__ == "__main__":
+    # Параметры из варианта
+    sizes = [1000, 5000, 10000, 100000]
+    orders = ['sorted', 'reversed', 'random']
+    algorithms = [timsort, shell_sort]
+    algorithm_names = ['Timsort', 'Shell Sort']
+
+    # Словарь для хранения результатов
+    results = {name: {order: [] for order in orders} for name in algorithm_names}
+
+    # Запуск тестов
+    for size in sizes:
+        print(f"\n--- Размер массива: {size} ---")
+        for order in orders:
+            arr = generate_array(size, order)
+            print(f"  Порядок: {order}")
+            for algo, name in zip(algorithms, algorithm_names):
+                time_taken = test_sorting_algorithm(algo, arr, order)
+                results[name][order].append(time_taken)
+                print(f"    {name}: {time_taken:.6f} сек")
+
+    # ==================== Построение графиков ====================
+    # График для случайного массива
+    plt.figure(figsize=(10, 6))
+    for name in algorithm_names:
+        plt.plot(sizes, results[name]['random'], marker='o', label=name)
+    plt.xlabel('Размер массива')
+    plt.ylabel('Время (секунды)')
+    plt.title('Сравнение эффективности (Случайный массив)')
+    plt.legend()
+    plt.grid(True)
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.show()
+
+    # График для всех типов массивов (Timsort)
+    plt.figure(figsize=(10, 6))
+    for order in orders:
+        plt.plot(sizes, results['Timsort'][order], marker='s', label=f'Timsort ({order})')
+    plt.xlabel('Размер массива')
+    plt.ylabel('Время (секунды)')
+    plt.title('Эффективность Timsort на разных типах массивов')
+    plt.legend()
+    plt.grid(True)
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.show()
+
+    # График для всех типов массивов (Shell Sort)
+    plt.figure(figsize=(10, 6))
+    for order in orders:
+        plt.plot(sizes, results['Shell Sort'][order], marker='^', label=f'Shell Sort ({order})')
+    plt.xlabel('Размер массива')
+    plt.ylabel('Время (секунды)')
+    plt.title('Эффективность Shell Sort на разных типах массивов')
+    plt.legend()
+    plt.grid(True)
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.show()
