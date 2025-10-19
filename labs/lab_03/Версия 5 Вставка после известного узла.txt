@@ -1,0 +1,19 @@
+class LinkedListV5(LinkedListV4):
+    """Версия 5: Вставка после известного узла."""
+    
+    def insert_after(self, target_node, data):
+        """Вставка после известного узла - O(1)"""
+        if not target_node:
+            raise ValueError("Целевой узел не может быть None")
+        
+        new_node = Node(data)
+        new_node.next = target_node.next
+        target_node.next = new_node
+
+# Демонстрация
+list5 = LinkedListV5()
+list5.append(1)
+list5.append(3)
+node1 = list5.find(1)
+list5.insert_after(node1, 2)
+print(list5)  # LinkedListV5([1, 2, 3])
