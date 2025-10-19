@@ -1,0 +1,28 @@
+class LinkedListV3(LinkedListV2):
+    """Версия 3: Поиск и длина списка."""
+    
+    def __len__(self):
+        """Возвращает длину списка - O(n)"""
+        count = 0
+        current = self.head
+        while current:
+            count += 1
+            current = current.next
+        return count
+    
+    def find(self, data):
+        """Поиск элемента - O(n)"""
+        current = self.head
+        while current:
+            if current.data == data:
+                return current
+            current = current.next
+        return None
+
+# Демонстрация
+list3 = LinkedListV3()
+list3.append(1)
+list3.append(2)
+list3.append(3)
+print(f"Длина: {len(list3)}")  # Длина: 3
+print(f"Найден: {list3.find(2)}")  # Найден: Node(2)
