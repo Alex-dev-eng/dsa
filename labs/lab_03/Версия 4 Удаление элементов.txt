@@ -1,0 +1,40 @@
+class LinkedListV4(LinkedListV3):
+    """Версия 4: Удаление элементов."""
+    
+    def remove_left(self):
+        """Удаление из начала - O(1)"""
+        if not self.head:
+            raise ValueError("Список пуст")
+        data = self.head.data
+        self.head = self.head.next
+        return data
+    
+    def remove(self, data):
+        """Удаление первого вхождения элемента - O(n)"""
+        if not self.head:
+            raise ValueError("Список пуст")
+        
+        # Особый случай: удаляем голову
+        if self.head.data == data:
+            return self.remove_left()
+        
+        # Ищем элемент, сохраняя предыдущий
+        prev = self.head
+        current = self.head.next
+        
+        while current:
+            if current.data == data:
+                prev.next = current.next
+                return current.data
+            prev = current
+            current = current.next
+        
+        raise ValueError(f"Элемент {data} не найден")
+
+# Демонстрация
+list4 = LinkedListV4()
+list4.append(1)
+list4.append(2)
+list4.append(3)
+list4.remove(2)
+print(list4)  # LinkedListV4([1, 3])
