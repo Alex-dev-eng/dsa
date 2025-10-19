@@ -1,0 +1,83 @@
+from abc import ABC, abstractmethod
+from typing import Any, Optional
+
+class Stack(ABC):
+    """Абстрактный класс стека."""
+    
+    @abstractmethod
+    def push(self, item: Any) -> None:
+        pass
+    
+    @abstractmethod
+    def pop(self) -> Any:
+        pass
+    
+    @abstractmethod
+    def peek(self) -> Any:
+        pass
+    
+    @abstractmethod
+    def is_empty(self) -> bool:
+        pass
+    
+    @abstractmethod
+    def __len__(self) -> int:
+        pass
+
+class Queue(ABC):
+    """Абстрактный класс очереди."""
+    
+    @abstractmethod
+    def enqueue(self, item: Any) -> None:
+        pass
+    
+    @abstractmethod
+    def dequeue(self) -> Any:
+        pass
+    
+    @abstractmethod
+    def peek(self) -> Any:
+        pass
+    
+    @abstractmethod
+    def is_empty(self) -> bool:
+        pass
+    
+    @abstractmethod
+    def __len__(self) -> int:
+        pass
+
+class Deque(ABC):
+    """Абстрактный класс дека."""
+    
+    @abstractmethod
+    def push_front(self, item: Any) -> None:
+        pass
+    
+    @abstractmethod
+    def push_back(self, item: Any) -> None:
+        pass
+    
+    @abstractmethod
+    def pop_front(self) -> Any:
+        pass
+    
+    @abstractmethod
+    def pop_back(self) -> Any:
+        pass
+    
+    @abstractmethod
+    def peek_front(self) -> Any:
+        pass
+    
+    @abstractmethod
+    def peek_back(self) -> Any:
+        pass
+    
+    @abstractmethod
+    def is_empty(self) -> bool:
+        pass
+    
+    @abstractmethod
+    def __len__(self) -> int:
+        pass
