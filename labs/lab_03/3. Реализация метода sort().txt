@@ -1,1 +1,68 @@
+class SortableLinkedList(ReversibleLinkedList):
+    """Расширенный список с методом сортировки."""
+    
+    def sort(self):
+        """Сортировка слиянием - O(n log n)"""
+        if not self.head or not self.head.next:
+            return  # Пустой список или из одного элемента уже отсортирован
+        
+        self.head = self._merge_sort(self.head)
+    
+    def _merge_sort(self, head):
+        """Рекурсивная сортировка слиянием."""
+        if not head or not head.next:
+            return head
+        
+        # Разделение списка на две части
+        middle = self._get_middle(head)
+        next_to_middle = middle.next
+        middle.next = None
+        
+        # Рекурсивная сортировка обеих половин
+        left = self._merge_sort(head)
+        right = self._merge_sort(next_to_middle)
+        
+        # Слияние отсортированных половин
+        return self._merge(left, right)
+    
+    def _get_middle(self, head):
+        """Находит середину списка для разделения."""
+        if not head:
+            return head
+        
+        slow = head
+        fast = head
+        
+        while fast.next and fast.next.next:
+            slow = slow.next
+            fast = fast.next.next
+        
+        return slow
+    
+    def _merge(self, left, right):
+        """Слияние двух отсортированных списков."""
+        if not left:
+            return right
+        if not right:
+            return left
+        
+        # Выбор меньшего элемента
+        if left.data <= right.data:
+            result = left
+            result.next = self._merge(left.next, right)
+        else:
+            result = right
+            result.next = self._merge(left, right.next)
+        
+        return result
+
+# Демонстрация
+sortable_list = SortableLinkedList()
+sortable_list.append(3)
+sortable_list.append(1)
+sortable_list.append(4)
+sortable_list.append(2)
+print("До сортировки:", sortable_list)  # До сортировки: SortableLinkedList([3, 1, 4, 2])
+sortable_list.sort()
+print("После сортировки:", sortable_list)  # После сортировки: SortableLinkedList([1, 2, 3, 4])
 
