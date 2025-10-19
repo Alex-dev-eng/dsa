@@ -1,0 +1,55 @@
+def infix_to_postfix(expression: str) -> str:
+    """
+    Преобразует инфиксное выражение в постфиксную запись.
+    
+    Args:
+        expression: Строка с инфиксным выражением
+        
+    Returns:
+        str: Выражение в постфиксной записи
+    """
+    stack = ArrayStack()
+    output = []
+    
+    # Приоритет операторов
+    precedence = {'+': 1, '-': 1, '*': 2, '/': 2, '^': 3}
+    
+    for token in expression.split():
+        if token.isdigit():  # Число
+            output.append(token)
+        elif token == '(':  # Открывающая скобка
+            stack.push(token)
+        elif token == ')':  # Закрывающая скобка
+            while not stack.is_empty() and stack.peek() != '(':
+                output.append(stack.pop())
+            if not stack.is_empty() and stack.peek() == '(':
+                stack.pop()  # Удаляем '('
+        elif token in precedence:  # Оператор
+            while (not stack.is_empty() and 
+                   stack.peek() != '(' and 
+                   precedence.get(stack.peek(), 0) >= precedence[token]):
+                output.append(stack.pop())
+            stack.push(token)
+    
+    # Выталкиваем оставшиеся операторы
+    while not stack.is_empty():
+        output.append(stack.pop())
+    
+    return ' '.join(output)
+
+# Тестирование
+def test_infix_to_postfix():
+    """Тестирование преобразования в постфиксную запись."""
+    test_cases = [
+        ("a + b", "a b +"),
+        ("( a + b ) * c", "a b + c *"),
+        ("a + ( b + c ) * d", "a b c + d * +"),
+        ("a * b + c * d", "a b * c d * +"),
+        ("( a + b ) * ( c + d )", "a b + c d + *")
+    ]
+    
+    print("\n=== ПРЕОБРАЗОВАНИЕ В ПОСТФИКСНУЮ ЗАПИСЬ ===")
+    for infix, expected_postfix in test_cases:
+        result = infix_to_postfix(infix)
+        status = "✓" if result == expected_postfix else "✗"
+        print(f"{status} '{infix}' -> '{result}' (ожидалось: '{expected_postfix}')")
