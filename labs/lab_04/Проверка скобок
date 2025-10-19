@@ -1,0 +1,44 @@
+def check_brackets(expression: str) -> bool:
+    """
+    Проверяет корректность расстановки скобок в выражении.
+    
+    Args:
+        expression: Строка, содержащая только скобки '()[]{}'
+    
+    Returns:
+        bool: True если скобки расставлены правильно, иначе False
+    """
+    stack = ArrayStack()
+    bracket_pairs = {')': '(', ']': '[', '}': '{'}
+    
+    for char in expression:
+        if char in '([{':  # Открывающая скобка
+            stack.push(char)
+        elif char in ')]}':  # Закрывающая скобка
+            if stack.is_empty():
+                return False  # Закрывающая без открывающей
+            if stack.pop() != bracket_pairs[char]:
+                return False  # Несоответствие скобок
+    
+    return stack.is_empty()  # Все скобки должны быть закрыты
+
+# Тестирование
+def test_bracket_checker():
+    """Тестирование проверки скобок."""
+    test_cases = [
+        ("()", True),
+        ("()[]{}", True),
+        ("([{}])", True),
+        ("(]", False),
+        ("([)]", False),
+        ("((()))", True),
+        ("({[}])", False),
+        ("", True),
+        ("((())", False)
+    ]
+    
+    print("=== ПРОВЕРКА СКОБОК ===")
+    for expression, expected in test_cases:
+        result = check_brackets(expression)
+        status = "✓" if result == expected else "✗"
+        print(f"{status} '{expression}' -> {result} (ожидалось: {expected})")
