@@ -1,1 +1,25 @@
+class ReversibleLinkedList(LinkedListV6):
+    """Расширенный список с методом reverse."""
+    
+    def reverse(self):
+        """Разворот списка на месте - O(n)"""
+        prev = None
+        current = self.head
+        
+        while current:
+            next_node = current.next  # Сохраняем следующий
+            current.next = prev       # Разворачиваем указатель
+            prev = current            # Двигаем prev
+            current = next_node       # Двигаем current
+        
+        self.head = prev  # Новая голова - бывший хвост
+
+# Демонстрация
+reversible_list = ReversibleLinkedList()
+reversible_list.append(1)
+reversible_list.append(2)
+reversible_list.append(3)
+print("До разворота:", reversible_list)  # До разворота: ReversibleLinkedList([1, 2, 3])
+reversible_list.reverse()
+print("После разворота:", reversible_list)  # После разворота: ReversibleLinkedList([3, 2, 1])
 
