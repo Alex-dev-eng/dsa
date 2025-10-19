@@ -1,0 +1,17 @@
+def remove_all_duplicates(linked_list: 'SingleLinkedListV6') -> None:
+    if linked_list._head is None or linked_list._head.next is None:
+        return
+    
+    current = linked_list._head
+    
+    while current and current.next:
+        runner = current
+        while runner.next:
+            if runner.next.data == current.data:
+                runner.next = runner.next.next
+                linked_list.size -= 1
+                if runner.next is None:
+                    linked_list._tail = runner
+            else:
+                runner = runner.next
+        current = current.next
