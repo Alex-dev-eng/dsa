@@ -1,0 +1,25 @@
+class LinkedListV6(LinkedListV5):
+    """Версия 6: Поддержка итерации."""
+    
+    def __iter__(self):
+        """Делает список итерируемым."""
+        current = self.head
+        while current:
+            yield current.data
+            current = current.next
+    
+    def __contains__(self, data):
+        """Поддержка оператора 'in'."""
+        return self.find(data) is not None
+
+# Демонстрация
+list6 = LinkedListV6()
+list6.append(1)
+list6.append(2)
+list6.append(3)
+
+print("Итерация по списку:")
+for item in list6:
+    print(item, end=" ")  # 1 2 3
+
+print(f"\nПроверка наличия: {2 in list6}")  # Проверка наличия: True
