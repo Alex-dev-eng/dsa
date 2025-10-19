@@ -1,0 +1,27 @@
+class LinkedListV2(LinkedListV1):
+    """Версия 2: Добавление методов вставки."""
+    
+    def append_left(self, data):
+        """Добавление в начало - O(1)"""
+        new_node = Node(data)
+        new_node.next = self.head
+        self.head = new_node
+    
+    def append(self, data):
+        """Добавление в конец - O(n)"""
+        new_node = Node(data)
+        if not self.head:  # Если список пуст
+            self.head = new_node
+            return
+        
+        current = self.head
+        while current.next:  # Идем до последнего узла
+            current = current.next
+        current.next = new_node
+
+# Демонстрация
+list2 = LinkedListV2()
+list2.append(1)
+list2.append(2)
+list2.append_left(0)
+print(list2)  # LinkedListV2([0, 1, 2])
