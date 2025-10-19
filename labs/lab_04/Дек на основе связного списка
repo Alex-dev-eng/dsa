@@ -1,0 +1,100 @@
+class DoublyNode:
+    """Узел для двусвязного списка."""
+    def __init__(self, data: Any):
+        self.data = data
+        self.prev: Optional['DoublyNode'] = None
+        self.next: Optional['DoublyNode'] = None
+
+class LinkedListDeque(Deque):
+    """Дек на основе двусвязного списка."""
+    
+    def __init__(self):
+        self._head: Optional[DoublyNode] = None
+        self._tail: Optional[DoublyNode] = None
+        self._size = 0
+    
+    def push_front(self, item: Any) -> None:
+        """Добавление в начало - O(1)"""
+        new_node = DoublyNode(item)
+        
+        if self.is_empty():
+            self._head = self._tail = new_node
+        else:
+            new_node.next = self._head
+            self._head.prev = new_node
+            self._head = new_node
+        
+        self._size += 1
+    
+    def push_back(self, item: Any) -> None:
+        """Добавление в конец - O(1)"""
+        new_node = DoublyNode(item)
+        
+        if self.is_empty():
+            self._head = self._tail = new_node
+        else:
+            new_node.prev = self._tail
+            self._tail.next = new_node
+            self._tail = new_node
+        
+        self._size += 1
+    
+    def pop_front(self) -> Any:
+        """Удаление из начала - O(1)"""
+        if self.is_empty():
+            raise IndexError("Pop from empty deque")
+        
+        data = self._head.data
+        
+        if self._head == self._tail:  # Один элемент
+            self._head = self._tail = None
+        else:
+            self._head = self._head.next
+            self._head.prev = None
+        
+        self._size -= 1
+        return data
+    
+    def pop_back(self) -> Any:
+        """Удаление из конца - O(1)"""
+        if self.is_empty():
+            raise IndexError("Pop from empty deque")
+        
+        data = self._tail.data
+        
+        if self._head == self._tail:  # Один элемент
+            self._head = self._tail = None
+        else:
+            self._tail = self._tail.prev
+            self._tail.next = None
+        
+        self._size -= 1
+        return data
+    
+    def peek_front(self) -> Any:
+        """Просмотр начала - O(1)"""
+        if self.is_empty():
+            raise IndexError("Peek from empty deque")
+        return self._head.data
+    
+    def peek_back(self) -> Any:
+        """Просмотр конца - O(1)"""
+        if self.is_empty():
+            raise IndexError("Peek from empty deque")
+        return self._tail.data
+    
+    def is_empty(self) -> bool:
+        """Проверка на пустоту - O(1)"""
+        return self._head is None
+    
+    def __len__(self) -> int:
+        """Размер дека - O(1)"""
+        return self._size
+    
+    def __repr__(self) -> str:
+        elements = []
+        current = self._head
+        while current:
+            elements.append(str(current.data))
+            current = current.next
+        return f"LinkedListDeque([{', '.join(elements)}])"
