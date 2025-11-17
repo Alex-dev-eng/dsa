@@ -1,0 +1,478 @@
+import time
+import sys
+from functools import wraps
+
+class PalindromeChecker:
+    """
+    Класс для проверки симметричности подстроки различными методами
+    """
+    
+    def __init__(self):
+        self.performance_data = {}
+        self.recursion_calls_count = 0
+    
+    # ЗАДАНИЕ 1: Рекурсивный алгоритм
+    def is_symmetric_recursive(self, S, i, j):
+        """
+        Рекурсивная проверка симметричности части строки S от i-го до j-го элемента
+        """
+        self.recursion_calls_count += 1
+        
+        # Базис рекурсии 1: подстрока из одного элемента всегда симметрична
+        if i == j:
+            return True
+        
+        # Базис рекурсии 2: подстрока из двух элементов симметрична если они равны
+        if i + 1 == j:
+            return S[i] == S[j]
+        
+        # Базис рекурсии 3: если крайние символы не равны - не симметрична
+        if S[i] != S[j]:
+            return False
+        
+        # Рекурсивный шаг: проверяем внутреннюю подстроку
+        return self.is_symmetric_recursive(S, i + 1, j - 1)
+    
+    # ЗАДАНИЕ 2: Итеративный алгоритм
+    def is_symmetric_iterative(self, S, i, j):
+        """
+        Итеративная проверка симметричности части строки S от i-го до j-го элемента
+        """
+        left, right = i, j
+        while left < right:
+            if S[left] != S[right]:
+                return False
+            left += 1
+            right -= 1
+        return True
+    
+    # ЗАДАНИЕ 3.3: Рекурсивная реализация с мемоизацией (вручную)
+    def is_symmetric_memo(self, S, i, j, memo=None):
+        """
+        Рекурсивная проверка с сохранением промежуточных результатов
+        """
+        if memo is None:
+            memo = {}
+        
+        self.recursion_calls_count += 1
+        
+        # Проверяем, не вычисляли ли мы уже этот результат
+        key = (i, j)
+        if key in memo:
+            return memo[key]
+        
+        # Базис рекурсии
+        if i == j:
+            memo[key] = True
+            return True
+        
+        if i + 1 == j:
+            result = S[i] == S[j]
+            memo[key] = result
+            return result
+        
+        if S[i] != S[j]:
+            memo[key] = False
+            return False
+        
+        # Рекурсивный шаг
+        result = self.is_symmetric_memo(S, i + 1, j - 1, memo)
+        memo[key] = result
+        return result
+    
+    # ЗАДАНИЕ 3.3: Декоратор для мемоизации
+    def memoize_decorator(self, func):
+        """
+        Декоратор для мемоизации результатов функции
+        """
+        cache = {}
+        
+        @wraps(func)
+        def wrapper(S, i, j):
+            key = (i, j)
+            if key not in cache:
+                cache[key] = func(S, i, j)
+            return cache[key]
+        
+        return wrapper
+    
+    # Применяем декоратор к рекурсивной функции
+    @memoize_decorator
+    def is_symmetric_decorated(self, S, i, j):
+        """
+        Рекурсивная проверка с использованием декоратора мемоизации
+        """
+        self.recursion_calls_count += 1
+        
+        if i == j:
+            return True
+        
+        if i + 1 == j:
+            return S[i] == S[j]
+        
+        if S[i] != S[j]:
+            return False
+        
+        return self.is_symmetric_decorated(S, i + 1, j - 1)
+    
+    # ЗАДАНИЕ 3.2: Оценка верхней границы размерности задачи
+    def estimate_max_recursion_depth(self):
+        """
+        Оценка максимальной глубины рекурсии для текущей системы
+        """
+        def recursive_depth_test(n, current=0):
+            if current >= n:
+                return current
+            return recursive_depth_test(n, current + 1)
+        
+        try:
+            # Пытаемся найти максимальную глубину
+            test_depth = 100
+            increment = 100
+            
+            while True:
+                try:
+                    recursive_depth_test(test_depth)
+                    test_depth += increment
+                except RecursionError:
+                    # Уточняем поиск с меньшим шагом
+                    if increment > 1:
+                        test_depth -= increment
+                        increment = increment // 10
+                        test_depth += increment
+                    else:
+                        return test_depth - 1
+        except:
+            return 1000  # Консервативная оценка по умолчанию
+    
+    # ЗАДАНИЕ 3.4: Сравнение производительности
+    def compare_performance(self, test_cases, iterations=1000):
+        """
+        Сравнение производительности всех реализованных алгоритмов
+        """
+        algorithms = {
+            "Рекурсивный": self.is_symmetric_recursive,
+            "Итеративный": self.is_symmetric_iterative,
+            "Рекурсивный с мемоизацией": self.is_symmetric_memo,
+            "Рекурсивный с декоратором": self.is_symmetric_decorated
+        }
+        
+        results = {}
+        
+        for name, algorithm in algorithms.items():
+            times = []
+            total_calls = 0
+            
+            for test_string, i, j in test_cases:
+                self.recursion_calls_count = 0
+                start_time = time.perf_counter()
+                
+                for _ in range(iterations):
+                    algorithm(test_string, i, j)
+                
+                end_time = time.perf_counter()
+                execution_time = (end_time - start_time) * 1000  # в миллисекундах
+                
+                times.append(execution_time)
+                total_calls += self.recursion_calls_count
+            
+            results[name] = {
+                'min_time': min(times),
+                'max_time': max(times),
+                'avg_time': sum(times) / len(times),
+                'total_calls': total_calls,
+                'calls_per_test': total_calls / (len(test_cases) * iterations)
+            }
+        
+        return results
+    
+    def print_block_diagram(self):
+        """
+        Вывод блок-схемы рекурсивного алгоритма
+        """
+        print("\n" + "="*60)
+        print("БЛОК-СХЕМА РЕКУРСИВНОГО АЛГОРИТМА")
+        print("="*60)
+        print("""
+    [Начало]
+        |
+        V
+    [Вход: S, i, j]
+        |
+        V
+    i == j? --> Да --> [Возврат True]
+        |
+        Нет
+        V
+    i+1 == j? --> Да --> [S[i] == S[j]?] --> Да/Нет --> [Возврат True/False]
+        |
+        Нет
+        V
+    S[i] != S[j]? --> Да --> [Возврат False]
+        |
+        Нет
+        V
+    [Рекурсивный вызов: is_symmetric(S, i+1, j-1)]
+        |
+        V
+    [Возврат результата]
+        |
+        V
+    [Конец]
+        """)
+    
+    def demonstrate_algorithms(self):
+        """
+        Демонстрация работы всех реализованных алгоритмов
+        """
+        test_cases = [
+            ("radar", 0, 4),      # симметричная
+            ("hello", 0, 4),      # несимметричная
+            ("a", 0, 0),          # один символ
+            ("ab", 0, 1),         # два символа
+            ("abcba", 0, 4),      # симметричная нечетная
+            ("abcddcba", 0, 7),   # симметричная длинная
+            ("abcdba", 0, 5),     # несимметричная
+        ]
+        
+        print("\n" + "="*70)
+        print("ДЕМОНСТРАЦИЯ РАБОТЫ АЛГОРИТМОВ")
+        print("="*70)
+        
+        for S, i, j in test_cases:
+            substring = S[i:j+1]
+            
+            # Сбрасываем счетчик вызовов
+            self.recursion_calls_count = 0
+            rec_result = self.is_symmetric_recursive(S, i, j)
+            rec_calls = self.recursion_calls_count
+            
+            self.recursion_calls_count = 0
+            memo_result = self.is_symmetric_memo(S, i, j)
+            memo_calls = self.recursion_calls_count
+            
+            iter_result = self.is_symmetric_iterative(S, i, j)
+            dec_result = self.is_symmetric_decorated(S, i, j)
+            
+            print(f"Строка: '{S:15}', подстрока '{substring:10}' (индексы {i}-{j})")
+            print(f"  Рекурсивный: {rec_result:5} (вызовов: {rec_calls:2})")
+            print(f"  Итеративный: {iter_result:5}")
+            print(f"  С мемоизацией: {memo_result:5} (вызовов: {memo_calls:2})")
+            print(f"  С декоратором: {dec_result:5}")
+            print()
+    
+    def print_performance_comparison(self):
+        """
+        Вывод результатов сравнения производительности
+        """
+        # Генерируем тестовые данные
+        test_cases = []
+        
+        # Разные типы строк для тестирования
+        symmetric_cases = [
+            ("a" * 10, 0, 9),
+            ("abba" * 3, 0, 11),
+            ("abcba" * 2, 0, 9),
+        ]
+        
+        non_symmetric_cases = [
+            ("abc" * 4, 0, 11),
+            ("a" * 9 + "b", 0, 9),
+        ]
+        
+        test_cases = symmetric_cases + non_symmetric_cases
+        
+        print("\n" + "="*80)
+        print("СРАВНЕНИЕ ПРОИЗВОДИТЕЛЬНОСТИ АЛГОРИТМОВ (1000 итераций на каждый тест)")
+        print("="*80)
+        
+        results = self.compare_performance(test_cases, iterations=1000)
+        
+        print(f"{'Алгоритм':<30} {'Мин. время (мс)':<15} {'Макс. время (мс)':<15} {'Ср. время (мс)':<15} {'Вызовов/тест':<12}")
+        print("-" * 80)
+        
+        for name, data in results.items():
+            print(f"{name:<30} {data['min_time']:<15.4f} {data['max_time']:<15.4f} {data['avg_time']:<15.4f} {data['calls_per_test']:<12.1f}")
+    
+    def analyze_recursion_limits(self):
+        """
+        Анализ ограничений рекурсии
+        """
+        print("\n" + "="*60)
+        print("АНАЛИЗ ОГРАНИЧЕНИЙ РЕКУРСИИ")
+        print("="*60)
+        
+        max_depth = self.estimate_max_recursion_depth()
+        print(f"Оценка максимальной глубины рекурсии: {max_depth}")
+        
+        # Для проверки симметричности максимальная длина строки = 2 * max_depth
+        # (так как на каждом шаге мы уменьшаем оба конца)
+        max_string_length = max_depth
+        
+        print(f"Теоретическая максимальная длина строки для проверки: {max_string_length}")
+        print(f"Практическая рекомендация: не более {max_string_length // 2} символов")
+        
+        # Демонстрация переполнения стека
+        print("\nДемонстрация переполнения стека:")
+        try:
+            long_string = "a" * (max_string_length + 100)
+            self.is_symmetric_recursive(long_string, 0, len(long_string) - 1)
+            print("Переполнения не произошло (неожиданно)")
+        except RecursionError as e:
+            print(f"Произошло переполнение стека: {e}")
+    
+    def run_complete_analysis(self):
+        """
+        Запуск полного анализа всех алгоритмов
+        """
+        print("ЛАБОРАТОРНАЯ РАБОТА: РЕКУРСИВНЫЕ И ИТЕРАТИВНЫЕ АЛГОРИТМЫ")
+        print("Проверка симметричности подстроки")
+        
+        # Блок-схема
+        self.print_block_diagram()
+        
+        # Демонстрация работы
+        self.demonstrate_algorithms()
+        
+        # Анализ ограничений
+        self.analyze_recursion_limits()
+        
+        # Сравнение производительности
+        self.print_performance_comparison()
+        
+        # Выводы
+        print("\n" + "="*60)
+        print("ВЫВОДЫ")
+        print("="*60)
+        print("1. Рекурсивный подход более интуитивен для задач проверки симметричности")
+        print("2. Итеративный подход эффективнее по памяти и скорости")
+        print("3. Мемоизация уменьшает количество рекурсивных вызовов при повторных проверках")
+        print("4. Глубина рекурсии ограничена размером стека вызовов")
+        print("5. Для production-кода рекомендуется итеративный подход")
+        print("6. Для образовательных целей и коротких строк подходит рекурсивный подход")
+
+
+# Дополнительные утилиты для визуализации
+def print_theoretical_info():
+    """
+    Вывод теоретической информации из задания
+    """
+    print("\n" + "="*80)
+    print("КРАТКИЕ ТЕОРЕТИЧЕСКИЕ СВЕДЕНИЯ")
+    print("="*80)
+    
+    print("""
+Итеративный алгоритм — алгоритм, который выполняет набор инструкций многократно 
+с помощью циклических конструкций. Он явно управляет состоянием вычислений через 
+переменные-счетчики и аккумуляторы.
+
+Рекурсивный алгоритм — алгоритм, который вызывает сам себя для решения более 
+мелких подзадач того же типа. Должен иметь базис(ы) рекурсии — условие остановки.
+
+Структура рекурсивного алгоритма:
+- Базис рекурсии (terminating condition) — условие, при котором функция 
+  возвращает результат без новых вызовов
+- Рекурсивный шаг — вызов функции с упрощенным набором аргументов
+
+Сравнительная характеристика:
++----------------------+--------------------------------+--------------------------------+
+| Критерий            | Итеративный подход            | Рекурсивный подход            |
++----------------------+--------------------------------+--------------------------------+
+| Читаемость          | Менее читаем для рекурсивных | Более лаконичен и интуитивен  |
+|                     | по природе задач             |                               |
++----------------------+--------------------------------+--------------------------------+
+| Производительность  | Выше, O(1) память            | Ниже, O(n) память для стека   |
+| (память)            |                               |                               |
++----------------------+--------------------------------+--------------------------------+
+| Производительность  | Выше                         | Ниже (накладные расходы)      |
+| (скорость)          |                               |                               |
++----------------------+--------------------------------+--------------------------------+
+| Простота реализации | Проще для линейных процессов | Проще для древовидных структур|
++----------------------+--------------------------------+--------------------------------+
+    """)
+
+
+# Главная функция программы
+def main():
+    """
+    Главная функция для запуска всей лабораторной работы
+    """
+    # Вывод теоретической части
+    print_theoretical_info()
+    
+    # Создание экземпляра класса и запуск анализа
+    checker = PalindromeChecker()
+    checker.run_complete_analysis()
+
+
+# Дополнительные тесты для проверки граничных случаев
+def run_additional_tests():
+    """
+    Дополнительные тесты для проверки корректности алгоритмов
+    """
+    print("\n" + "="*60)
+    print("ДОПОЛНИТЕЛЬНЫЕ ТЕСТЫ")
+    print("="*60)
+    
+    checker = PalindromeChecker()
+    
+    test_cases = [
+        # (строка, начало, конец, ожидаемый результат)
+        ("", 0, -1, True),           # пустая строка
+        ("x", 0, 0, True),           # один символ
+        ("xy", 0, 1, False),         # два разных символа
+        ("xx", 0, 1, True),          # два одинаковых символа
+        ("abcba", 0, 4, True),       # палиндром нечетной длины
+        ("abba", 0, 3, True),        # палиндром четной длины
+        ("abcde", 0, 4, False),      # не палиндром
+        ("racecar", 0, 6, True),     # длинный палиндром
+        ("abcddcba", 1, 6, True),    # подстрока-палиндром
+    ]
+    
+    algorithms = [
+        ("Рекурсивный", checker.is_symmetric_recursive),
+        ("Итеративный", checker.is_symmetric_iterative),
+        ("С мемоизацией", checker.is_symmetric_memo),
+        ("С декоратором", checker.is_symmetric_decorated),
+    ]
+    
+    all_passed = True
+    
+    for algo_name, algo_func in algorithms:
+        print(f"\nТестирование алгоритма: {algo_name}")
+        passed = 0
+        failed = 0
+        
+        for S, i, j, expected in test_cases:
+            try:
+                result = algo_func(S, i, j)
+                if result == expected:
+                    passed += 1
+                else:
+                    failed += 1
+                    print(f"  ОШИБКА: '{S}'[{i}:{j}] -> {result} (ожидалось {expected})")
+            except Exception as e:
+                failed += 1
+                print(f"  ИСКЛЮЧЕНИЕ: '{S}'[{i}:{j}] -> {e}")
+        
+        print(f"  Пройдено: {passed}, Не пройдено: {failed}")
+        
+        if failed > 0:
+            all_passed = False
+    
+    if all_passed:
+        print("\n✓ Все тесты пройдены успешно!")
+    else:
+        print("\n✗ Некоторые тесты не пройдены!")
+
+
+if __name__ == "__main__":
+    # Запуск основной программы
+    main()
+    
+    # Запуск дополнительных тестов
+    run_additional_tests()
+    
+    print("\n" + "="*80)
+    print("ЛАБОРАТОРНАЯ РАБОТА ЗАВЕРШЕНА")
+    print("="*80)
